@@ -1,0 +1,286 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: Strange Tides
+basePath: /
+# 
+schemes:
+# tip: remove http to make production-grade
+- http
+- https
+# format of bodies a client can send (Content-Type)
+consumes:
+- application/json
+# format of the responses to the client (Accepts)
+produces:
+- application/json
+- text/plain
+paths:
+  /user/login:
+    x-swagger-router-controller: userController
+    post:
+      summary: Log in as a user.
+      consumes:
+      - application/json
+      operationId: login
+      parameters:
+      - in: body
+        name: userLogin
+        description: The user to login as.
+        schema:
+          $ref: "#/definitions/userLogin"
+      responses:
+        "200":
+          description: returns a token and user details
+          schema:
+            $ref: "#/definitions/UserLoginResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /user:
+    post:
+      x-swagger-router-controller: userController
+      summary: create a new user
+      consumes:
+      - application/json
+      operationId: createUser
+      parameters:
+      - in: body
+        name: newUser
+        description: The user to create.
+        schema:
+          $ref: "#/definitions/newUserRequest"
+      responses:
+        "201":
+          description: user created
+          schema:
+            $ref: "#/definitions/newUserResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /user/{emplyeeID}/time:
+    parameters:
+    - in: path
+      name: emplyeeID
+      type: string
+      required: true
+      description: The project code for which work codes are being retrived.
+    x-swagger-router-controller: timeController
+    get:
+      description: Returns a list of time captured for the user
+      parameters:
+      - in: query
+        name: from
+        type: string
+        format: date
+        description: The date to start returning time from.
+      - in: query
+        name: limit
+        type: string
+        format: date
+        description: the date to stop returning time.
+      operationId: getTimeLog
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/UserTimeResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      description: Returns a list of time captured for the user
+      parameters:
+      - in: body
+        name: timeLog
+        description: The user to create.
+        schema:
+          $ref: "#/definitions/UserTimeLogRequest"
+      operationId: addTimeLog
+      responses:
+        "201":
+          description: Success
+          schema:
+            $ref: '#/definitions/UserTimeLogResponse'
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /projectCode/{employeeID}:
+    x-swagger-router-controller: timeController
+    get:
+      parameters:
+      - in: path
+        name: employeeID
+        type: string
+        required: true
+        description: The employee for whoom project codes are being retrived.
+      description: Returns a list of project codes for an employee.
+      operationId: getProjectCodes
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/ProjectCodeListResponce"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /projectCode/{projectCode}/workCode:
+    parameters:
+    - in: path
+      name: projectCode
+      type: string
+      required: true
+      description: The project code for which work codes are being retrived.
+    x-swagger-router-controller: timeController
+    get:
+      description: Returns a list of work codes for a project code
+      operationId: getWorkCodes
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/WorkCodeListResponce"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /swagger:
+    x-swagger-pipe: swagger_raw
+
+# objects schema definitions
+definitions:
+  userLogin:
+    type: object
+    required:
+    - employeeID
+    - password
+    properties:
+      employeeID:
+        type: string
+      password:
+        type: string
+
+  newUserRequest:
+    type: object
+    properties:
+      admin:
+        type: boolean
+      firstName:
+        type: string
+      surname:
+        type: string
+      email:
+        type: string
+        format: email
+      cellNumber:
+        type: string
+      password:
+        type: string
+        format: password
+      employeeID:
+        type: string
+      projectCodes:
+        type: array
+        items:
+          type: string
+
+  newUserResponse:
+    type: object
+    properties:
+      employeeID:
+        type: string
+      _id:
+        type: string
+
+  UserLoginResponse:
+    type: object
+    properties:
+      firstName:
+        type: string
+      surname:
+        type: string
+      email:
+        type: string
+      cellNumber:
+        type: string
+      token:
+        type: string
+
+  UserTimeLogRequest:
+    type: object
+    properties:
+      projectCode:
+        type: string
+      workCode:
+        type: string
+      date:
+        type: string
+        format: date-time
+      hoursWorked:
+        type: number
+      comment:
+        type: string
+      billable:
+        type: string
+
+  UserTimeLogResponse:
+    type: object
+    properties:
+      employeeID:
+        type: string
+      _id:
+        type: string
+
+  UserTimeResponse:
+    type: array
+    items:
+      $ref: '#/definitions/EmployeeTime'
+
+  EmployeeTime:
+    type: object
+    properties:
+      emplyeID:
+        type: string
+      projectCode:
+        type: string
+      workCode:
+        type: string
+      date:
+        type: string
+        format: date-time
+      hoursWorked:
+        type: number
+      coment:
+        type: string
+      billable:
+        type: string
+      _id:
+        type: string
+
+
+  WorkCodeListResponce:
+    type: array
+    items:
+      type: string
+
+  ProjectCodeListResponce:
+    type: array
+    items:
+      type: string
+
+  ErrorResponse:
+    required:
+    - message
+    properties:
+      message:
+        type: string
