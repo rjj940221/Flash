@@ -21,5 +21,8 @@
   "scripts": {
     "start": "node app.js",
     "test": "swagger project test"
+  },
+  "engines": {
+    "node": "8.11.3"
   }
 }
